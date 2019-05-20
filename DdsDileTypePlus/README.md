@@ -1,35 +1,45 @@
-# ddsfiletype-plus
-Quick and dirty solution to add DDS BC7 write/read support to .NET using paint.net plugin.
+# pdn-ddsfiletype-plus
 
-Uses [pdn-ddsfiletype-plus](https://github.com/0xC0000054/pdn-ddsfiletype-plus) plugin for Paint.NET and last open-sourced version of Paint.NET 3.36.7 stripped down to necessary elements.
+A [Paint.NET](http://www.getpaint.net) filetype plugin that adds support for some of the DDS formats introduced in DirectX 10 and later.
 
-## Use example
-```c#
-        void Main()
-        {            
-            progressBar1.Maximum = 100;
+### Note that a DDS file must be renamed to use the DDS2 file extension before the plugin will load it.
+For example, if your DDS file is named `File.dds` you would rename it to `File.dds2`. 
 
-            Surface surface = DdsFile.Load(@"S:\testDDS\BC7.dds");
+## Installing the plugin
 
-            System.IO.FileStream fileStream = new System.IO.FileStream(
-                @"S:\testDDS\result.dds",
-                System.IO.FileMode.Create);   
-            
-            DdsFile.Save(
-                fileStream,
-                DdsFileFormat.BC7,
-                DdsErrorMetric.Perceptual,
-                BC7CompressionMode.Fast,
-                true,
-                true,
-                ResamplingAlgorithm.Bilinear,
-                surface,
-                ProgressChanged                );
-            fileStream.Close();
-        }
+1. Close Paint.NET.
+2. Place DdsFileTypePlus.dll, DdsFileTypePlusIO_x86.dll and DdsFileTypePlusIO_x64.dll in the Paint.NET FileTypes folder which is usually located in one the following locations depending on the Paint.NET version you have installed.
 
-        private void ProgressChanged(object sender, ProgressEventArgs e)
-        {
-            progressBar1.Value = (int) Math.Round(e.Percent);
-        }         
-```
+  Paint.NET Version |  FileTypes Folder Location
+  --------|----------
+  Classic | C:\Program Files\Paint.NET\FileTypes    
+  Microsoft Store | Documents\paint.net App Files\FileTypes
+
+3. Restart Paint.NET.
+
+## License
+
+This project is licensed under the terms of the MIT License.   
+See [License.txt](License.txt) for more information.
+
+***
+
+# Source code
+
+## Prerequsites
+
+* Visual Studio 2017
+* Paint.NET 4.0.17 or later
+
+## Building the plugin
+
+* Open the solution
+* Change the PaintDotNet references in the DDSFileTypePlus project to match your Paint.NET install location
+* Update the post build events to copy the build output to the Paint.NET FileTypes folder
+* Build the solution
+
+## 3rd Party Code
+
+This project utilizes the following code (located under 3rdParty folder)
+
+* [DirectXTex](https://github.com/Microsoft/DirectXTex) (February 7 2019 release)
