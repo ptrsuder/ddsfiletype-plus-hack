@@ -419,7 +419,7 @@ namespace DdsFileTypePlus
             return mipTexture;
         }
 
-        private static unsafe bool HasTransparency(Surface surface)
+        public static unsafe bool HasTransparency(Surface surface)
         {
             for (int y = 0; y < surface.Height; ++y)
             {

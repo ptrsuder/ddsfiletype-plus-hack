@@ -16,12 +16,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DX10 DDS filetype plugin for Paint.NET")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("DdsFileTypePlusHack")]
+[assembly: AssemblyDescription("Dirty solution to add DDS BC7 support to .NET using Paint.NET plugin")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("null54")]
+[assembly: AssemblyCompany("ptrsuder")]
 [assembly: AssemblyProduct("DdsFileTypePlus")]
-[assembly: AssemblyCopyright("Copyright © 2017-2019 Nicholas Hayes (aka null54)")]
+[assembly: AssemblyCopyright("Copyright © 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -43,5 +43,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.9.4.0")]
-[assembly: AssemblyFileVersion("1.9.4.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
