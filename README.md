@@ -1,7 +1,7 @@
 # ddsfiletype-plus
 Quick and dirty solution to add DDS BC7 write/read support to .NET using paint.net plugin.
 
-Uses [pdn-ddsfiletype-plus](https://github.com/0xC0000054/pdn-ddsfiletype-plus) plugin for Paint.NET and last open-sourced version of Paint.NET 3.36.7 stripped down to necessary elements.
+This project is [pdn-ddsfiletype-plus](https://github.com/0xC0000054/pdn-ddsfiletype-plus) plugin for Paint.NET and last open-sourced version of Paint.NET 3.36.7 stripped down to necessary elements.
 
 ## Use example
 ```c#
