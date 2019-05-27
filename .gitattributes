@@ -63,4 +63,4 @@
 #*.RTF diff=astextplain
 
 # GitHub Linguist override
-DdsFileTypePlus/* linguist-vendored
+DirectXTex/* linguist-vendored
