@@ -3,7 +3,7 @@
 // This file is part of pdn-ddsfiletype-plus, a DDS FileType plugin
 // for Paint.NET that adds support for the DX10 and later formats.
 //
-// Copyright (c) 2017-2019 Nicholas Hayes
+// Copyright (c) 2017-2023 Nicholas Hayes
 //
 // This file is licensed under the MIT License.
 // See LICENSE.txt for complete licensing and attribution information.
@@ -13,7 +13,7 @@
 #include "stdafx.h"
 #include "DirectComputeHelper.h"
 
-DirectComputeHelper::DirectComputeHelper()
+DirectComputeHelper::DirectComputeHelper(IDXGIAdapter* directComputeAdapter)
 {
     hModD3D11 = LoadLibraryW(L"d3d11.dll");
     computeDevice = nullptr;
@@ -35,28 +35,42 @@ DirectComputeHelper::DirectComputeHelper()
 #ifdef _DEBUG
             createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-            D3D_FEATURE_LEVEL featureLevelOut;
-
-            HRESULT hr = dynamicD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevels, _countof(featureLevels),
-                D3D11_SDK_VERSION, &computeDevice, &featureLevelOut, nullptr);
-
-            if (SUCCEEDED(hr))
+            if (directComputeAdapter != nullptr)
             {
-                if (featureLevelOut < D3D_FEATURE_LEVEL_11_0)
-                {
-                    D3D11_FEATURE_DATA_D3D10_X_HARDWARE_OPTIONS hwopts;
-                    hr = computeDevice->CheckFeatureSupport(D3D11_FEATURE_D3D10_X_HARDWARE_OPTIONS, &hwopts, sizeof(hwopts));
+                D3D_FEATURE_LEVEL featureLevelOut;
 
-                    if (FAILED(hr) || !hwopts.ComputeShaders_Plus_RawAndStructuredBuffers_Via_Shader_4_x)
+                HRESULT hr = dynamicD3D11CreateDevice(directComputeAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags,
+                      featureLevels, _countof(featureLevels), D3D11_SDK_VERSION, &computeDevice, &featureLevelOut, nullptr);
+
+                if (SUCCEEDED(hr))
+                {
+                    if (featureLevelOut < D3D_FEATURE_LEVEL_11_0)
                     {
-                        computeDevice->Release();
-                        computeDevice = nullptr;
+                        D3D11_FEATURE_DATA_D3D10_X_HARDWARE_OPTIONS hwopts;
+                        hr = computeDevice->CheckFeatureSupport(D3D11_FEATURE_D3D10_X_HARDWARE_OPTIONS, &hwopts, sizeof(hwopts));
+
+                        if (FAILED(hr) || !hwopts.ComputeShaders_Plus_RawAndStructuredBuffers_Via_Shader_4_x)
+                        {
+                            computeDevice->Release();
+                            computeDevice = nullptr;
+                        }
                     }
                 }
+                else
+                {
+                    computeDevice = nullptr;
+                }
             }
-            else
+
+            if (computeDevice == nullptr)
             {
-                computeDevice = nullptr;
+                HRESULT hr = dynamicD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, createDeviceFlags, featureLevels, _countof(featureLevels),
+                    D3D11_SDK_VERSION, &computeDevice, nullptr, nullptr);
+
+                if (FAILED(hr))
+                {
+                    computeDevice = nullptr;
+                }
             }
         }
     }

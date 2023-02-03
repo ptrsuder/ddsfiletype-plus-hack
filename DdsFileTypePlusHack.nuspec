@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>DdsFileTypePlusHack</id>
-    <version>1.1.0-beta1</version>
+    <version>1.2.0</version>
     <authors>ptrsuder, Nicholas Hayes</authors>
     <owners>ptrsuder</owners>
     <license type="file">DdsFileTypePlusHack-License.txt</license>
@@ -10,9 +10,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Dirty solution to add DDS BC7 support to .NET using code from Paint.NET plugin and stripped down last open sourced version of Paint.NET</description>
     <summary>Dirty solution to add DDS BC7 support to .NET</summary>
-    <releaseNotes>Change target .NET framework to 4.6.1; add .NET Core 2.1 as target</releaseNotes>
-    <copyright>Copyright 2019</copyright>
-    <tags>dds, directx, bc7, bc6</tags>
+    <releaseNotes>Change target .NET 6; update DdsFileTypePlus to v1.11.1</releaseNotes>
+    <copyright>Copyright 2023</copyright>
+    <tags>dds, directx, bc7</tags>
     <dependencies>
     <group targetFramework="netcoreapp2.1">
         <dependency id="System.Drawing.Common" version="4.6.0-preview.18571.3" />
@@ -24,15 +24,11 @@
    <files>
     <file src="licenses\DdsFileTypePlusHack-License.txt" target="" />
     <file src="licenses\DdsFileTypePlus-License.txt" target="" />
-    <file src="DdsFileTypePlus\bin\Debug\netcoreapp2.1\PaintDotNet.Base.dll" target="lib\netcoreapp2.1" />
-    <file src="DdsFileTypePlus\bin\Debug\netcoreapp2.1\PaintDotNet.Base.pdb" target="lib\netcoreapp2.1" />
-    <file src="DdsFileTypePlus\bin\Debug\netcoreapp2.1\DdsFileTypePlus.dll" target="lib\netcoreapp2.1" />
-    <file src="DdsFileTypePlus\bin\Debug\netcoreapp2.1\DdsFileTypePlus.pdb" target="lib\netcoreapp2.1" />
-    <file src="DdsFileTypePlus\bin\Debug\net461\PaintDotNet.Base.dll" target="lib\net461" />
-    <file src="DdsFileTypePlus\bin\Debug\net461\PaintDotNet.Base.pdb" target="lib\net461" />
-    <file src="DdsFileTypePlus\bin\Debug\net461\DdsFileTypePlus.dll" target="lib\net461" />
-    <file src="DdsFileTypePlus\bin\Debug\net461\DdsFileTypePlus.pdb" target="lib\net461" />
-    <file src="DdsFileTypePlus\bin\Debug\DdsFileTypePlusIO_x86.dll" target="build\x86\" />
+    <file src="DdsFileTypePlus\bin\Debug\net6.0\PaintDotNet.Base.dll" target="lib\net6.0" />
+    <file src="DdsFileTypePlus\bin\Debug\net6.0\PaintDotNet.Base.pdb" target="lib\net6.0" />
+    <file src="DdsFileTypePlus\bin\Debug\net6.0\DdsFileTypePlus.dll" target="lib\net6.0" />
+    <file src="DdsFileTypePlus\bin\Debug\net6.0\DdsFileTypePlus.pdb" target="lib\net6.0" />
+    <file src="DdsFileTypePlus\bin\Debug\DdsFileTypePlusIO_ARM64.dll" target="build\ARM64\" />
     <file src="DdsFileTypePlus\bin\Debug\DdsFileTypePlusIO_x64.dll" target="build\x64\" />
     <file src="DdsFileTypePlusHack.targets" target="build" />
   </files>

@@ -3,13 +3,15 @@
 // This file is part of pdn-ddsfiletype-plus, a DDS FileType plugin
 // for Paint.NET that adds support for the DX10 and later formats.
 //
-// Copyright (c) 2017-2019 Nicholas Hayes
+// Copyright (c) 2017-2023 Nicholas Hayes
 //
 // This file is licensed under the MIT License.
 // See LICENSE.txt for complete licensing and attribution information.
 //
 ////////////////////////////////////////////////////////////////////////
 
+
+using DdsFileTypePlus.Interop;
 using PaintDotNet;
 using System;
 using System.Drawing;
@@ -19,156 +21,18 @@ namespace DdsFileTypePlus
 {
     public static class DdsFile
     {
-        //public static unsafe Document Load(Stream input)
-        //{
-        //    Document doc = null;
 
-        //    using (DdsNative.DdsImage image = DdsNative.Load(input))
-        //    {
-        //        doc = new Document(image.Width, image.Height);
-
-        //        BitmapLayer layer = Layer.CreateBackgroundLayer(image.Width, image.Height);
-
-        //        Surface surface = layer.Surface;
-
-        //        for (int y = 0; y < surface.Height; ++y)
-        //        {
-        //            byte* src = image.GetRowAddressUnchecked(y);
-        //            ColorBgra* dst = surface.GetRowAddressUnchecked(y);
-
-        //            for (int x = 0; x < surface.Width; ++x)
-        //            {
-        //                dst->R = src[0];
-        //                dst->G = src[1];
-        //                dst->B = src[2];
-        //                dst->A = src[3];
-
-        //                src += 4;
-        //                ++dst;
-        //            }
-        //        }
-
-        //        doc.Layers.Add(layer);
-        //    }
-
-        //    return doc;
-        //}
-
-        public static unsafe Surface Load(string path)
-        {
-            byte[] buff = File.ReadAllBytes(path);
-            MemoryStream ms = new MemoryStream(buff);
-            DdsNative.DdsImage image = DdsNative.Load(ms);
-            Surface surface = new Surface(image.Width, image.Height);
-
-            for (int y = 0; y < surface.Height; ++y)
-            {
-                byte* src = image.GetRowAddressUnchecked(y);
-                ColorBgra* dst = surface.GetRowAddressUnchecked(y);
-
-                for (int x = 0; x < surface.Width; ++x)
-                {
-                    dst->R = src[0];
-                    dst->G = src[1];
-                    dst->B = src[2];
-                    dst->A = src[3];
-
-                    src += 4;
-                    ++dst;
-                }
-            }
-            return surface;
-        }
-
-        //public static void Save(
-        //    Document input,
-        //    Stream output,
-        //    DdsFileFormat format,
-        //    DdsErrorMetric errorMetric,
-        //    BC7CompressionMode compressionMode,
-        //    bool cubeMap,
-        //    bool generateMipmaps,
-        //    ResamplingAlgorithm sampling,
-        //    Surface scratchSurface,
-        //    ProgressEventHandler progressCallback)
-        //{
-        //    using (RenderArgs args = new RenderArgs(scratchSurface))
-        //    {
-        //        input.Render(args, true);
-        //    }
-
-        //    DdsNative.DdsProgressCallback ddsProgress = null;
-        //    if (progressCallback != null)
-        //    {
-        //        ddsProgress = (UIntPtr done, UIntPtr total) =>
-        //        {
-        //            double progress = (double)done.ToUInt64() / (double)total.ToUInt64();
-        //            progressCallback(null, new ProgressEventArgs(progress * 100.0, true));
-        //        };
-        //    }
-
-        //    int width = scratchSurface.Width;
-        //    int height = scratchSurface.Height;
-        //    int arraySize = 1;
-        //    Size? cubeMapFaceSize = null;
-
-        //    if (cubeMap && IsCrossedCubeMapSize(scratchSurface))
-        //    {
-        //        if (width > height)
-        //        {
-        //            width /= 4;
-        //            height /= 3;
-        //        }
-        //        else
-        //        {
-        //            width /= 3;
-        //            height /= 4;
-        //        }
-        //        arraySize = 6;
-        //        cubeMapFaceSize = new Size(width, height);
-        //    }
-
-        //    int mipLevels = generateMipmaps ? GetMipCount(width, height) : 1;
-
-        //    DdsNative.DDSSaveInfo info = new DdsNative.DDSSaveInfo
-        //    {
-        //        width = width,
-        //        height = height,
-        //        arraySize = arraySize,
-        //        mipLevels = mipLevels,
-        //        format = format,
-        //        errorMetric = errorMetric,
-        //        compressionMode = compressionMode,
-        //        cubeMap = cubeMapFaceSize.HasValue
-        //    };
-
-        //    using (TextureCollection textures = GetTextures(scratchSurface, cubeMapFaceSize, mipLevels, sampling))
-        //    {
-        //        DdsNative.Save(info, textures, output, ddsProgress);
-        //    }
-        //}
-        
-        public static void Save(           
+        public static void Save(       
            Stream output,
            DdsFileFormat format,
            DdsErrorMetric errorMetric,
-           BC7CompressionMode compressionMode,
+           BC7CompressionSpeed compressionSpeed,
            bool cubeMap,
            bool generateMipmaps,
            ResamplingAlgorithm sampling,
            Surface scratchSurface,
            ProgressEventHandler progressCallback)
-        {            
-            DdsNative.DdsProgressCallback ddsProgress = null;
-            if (progressCallback != null)
-            {
-                ddsProgress = (UIntPtr done, UIntPtr total) =>
-                {
-                    double progress = (double)done.ToUInt64() / (double)total.ToUInt64();
-                    progressCallback(null, new ProgressEventArgs(progress * 100.0));
-                };
-            }
-
+        {
             int width = scratchSurface.Width;
             int height = scratchSurface.Height;
             int arraySize = 1;
@@ -192,24 +56,76 @@ namespace DdsFileTypePlus
 
             int mipLevels = generateMipmaps ? GetMipCount(width, height) : 1;
 
-            DdsNative.DDSSaveInfo info = new DdsNative.DDSSaveInfo
-            {
-                width = width,
-                height = height,
-                arraySize = arraySize,
-                mipLevels = mipLevels,
-                format = format,
-                errorMetric = errorMetric,
-                compressionMode = compressionMode,
-                cubeMap = cubeMapFaceSize.HasValue
-            };
-
             using (TextureCollection textures = GetTextures(scratchSurface, cubeMapFaceSize, mipLevels, sampling))
             {
-                DdsNative.Save(info, textures, output, ddsProgress);
-            }
-        }        
+                if (format == DdsFileFormat.R8G8B8X8 || format == DdsFileFormat.B8G8R8)
+                {
+                    new DX9DdsWriter(width, height, arraySize, mipLevels, format).Save(textures, output, progressCallback);
+                }
+                else
+                {
+                    DdsProgressCallback ddsProgress = null;
+                    if (progressCallback != null)
+                    {
+                        ddsProgress = (UIntPtr done, UIntPtr total) =>
+                        {
+                            double progress = (double)done.ToUInt64() / (double)total.ToUInt64();
+                            try
+                            {
+                                progressCallback(null, new ProgressEventArgs(progress * 100.0));
+                                return true;
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                return false;
+                            }
+                        };
+                    }
 
+                    DDSSaveInfo info = new()
+                    {
+                        width = width,
+                        height = height,
+                        arraySize = arraySize,
+                        mipLevels = mipLevels,
+                        format = format,
+                        errorMetric = errorMetric,
+                        compressionSpeed = compressionSpeed,
+                        cubeMap = cubeMapFaceSize.HasValue
+                    };
+                    
+                    DdsNative.Save(info, textures, output, directComputeAdapter: IntPtr.Zero, ddsProgress);
+                  
+                }
+            }
+        }
+
+        public static unsafe Surface Load(string path)
+        {
+            byte[] buff = File.ReadAllBytes(path);
+            MemoryStream ms = new MemoryStream(buff);
+            DdsImage image = DdsNative.Load(ms);
+            Surface surface = new Surface(image.Width, image.Height);
+
+            for (int y = 0; y < surface.Height; ++y)
+            {
+                ColorRgba* src = image.GetRowAddressUnchecked(y);
+                ColorBgra* dst = surface.GetRowAddressUnchecked(y);
+
+                for (int x = 0; x < surface.Width; ++x)
+                {
+                    dst->R = src->R;
+                    dst->G = src->G;
+                    dst->B = src->B;
+                    dst->A = src->A;
+
+                    ++src;
+                    ++dst;
+                }
+            }
+            return surface;
+        }
+        
         private static bool IsCrossedCubeMapSize(Surface surface)
         {
             // A crossed image cube map must have a 4:3 aspect ratio for horizontal cube maps
@@ -375,7 +291,7 @@ namespace DdsFileTypePlus
                     // Downscaling images with transparency is done in a way that allows the completely transparent areas
                     // to retain their RGB color values, this behavior is required by some programs that use DDS files.
 
-                    using (Surface color = new Surface(mipWidth, mipHeight))
+                    using (Surface color = new(mipWidth, mipHeight))
                     {
                         using (Surface opaqueClone = fullSize.Clone())
                         {
@@ -419,7 +335,7 @@ namespace DdsFileTypePlus
             return mipTexture;
         }
 
-        public static unsafe bool HasTransparency(Surface surface)
+        private static unsafe bool HasTransparency(Surface surface)
         {
             for (int y = 0; y < surface.Height; ++y)
             {

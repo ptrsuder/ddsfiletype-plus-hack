@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>PaintDotNet.Base</RootNamespace>
     <AssemblyName>PaintDotNet.Base</AssemblyName>
   </PropertyGroup>
@@ -15,8 +14,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0-preview.18571.3" />
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
-
 </Project>

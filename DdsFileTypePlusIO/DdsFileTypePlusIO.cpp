@@ -3,7 +3,7 @@
 // This file is part of pdn-ddsfiletype-plus, a DDS FileType plugin
 // for Paint.NET that adds support for the DX10 and later formats.
 //
-// Copyright (c) 2017-2019 Nicholas Hayes
+// Copyright (c) 2017-2023 Nicholas Hayes
 //
 // This file is licensed under the MIT License.
 // See LICENSE.txt for complete licensing and attribution information.
@@ -24,41 +24,58 @@ namespace
     {
         switch (format)
         {
-        case DDS_FORMAT_BC1:
+        case DdsFileFormat::BC1:
             return DXGI_FORMAT_BC1_UNORM;
-        case DDS_FORMAT_BC1_SRGB:
+        case DdsFileFormat::BC1_SRGB:
             return DXGI_FORMAT_BC1_UNORM_SRGB;
-        case DDS_FORMAT_BC2:
+        case DdsFileFormat::BC2:
             return DXGI_FORMAT_BC2_UNORM;
-        case DDS_FORMAT_BC2_SRGB:
+        case DdsFileFormat::BC2_SRGB:
             return DXGI_FORMAT_BC2_UNORM_SRGB;
-        case DDS_FORMAT_BC3:
+        case DdsFileFormat::BC3:
             return DXGI_FORMAT_BC3_UNORM;
-        case DDS_FORMAT_BC3_SRGB:
+        case DdsFileFormat::BC3_SRGB:
             return DXGI_FORMAT_BC3_UNORM_SRGB;
-        case DDS_FORMAT_BC4:
+        case DdsFileFormat::BC4_UNORM:
             return DXGI_FORMAT_BC4_UNORM;
-        case DDS_FORMAT_BC5:
+        case DdsFileFormat::BC5_UNORM:
             return DXGI_FORMAT_BC5_UNORM;
-        case DDS_FORMAT_BC6H:
+        case DdsFileFormat::BC5_SNORM:
+            return DXGI_FORMAT_BC5_SNORM;
+        case DdsFileFormat::BC6H_UF16:
             return DXGI_FORMAT_BC6H_UF16;
-        case DDS_FORMAT_BC7:
+        case DdsFileFormat::BC7:
             return DXGI_FORMAT_BC7_UNORM;
-        case DDS_FORMAT_BC7_SRGB:
+        case DdsFileFormat::BC7_SRGB:
             return DXGI_FORMAT_BC7_UNORM_SRGB;
-        case DDS_FORMAT_B8G8R8A8:
+        case DdsFileFormat::B8G8R8A8:
             return DXGI_FORMAT_B8G8R8A8_UNORM;
-        case DDS_FORMAT_B8G8R8X8:
+        case DdsFileFormat::B8G8R8X8:
             return DXGI_FORMAT_B8G8R8X8_UNORM;
-        case DDS_FORMAT_B5G5R5A1:
+        case DdsFileFormat::B8G8R8A8_SRGB:
+            return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+        case DdsFileFormat::B8G8R8X8_SRGB:
+            return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
+        case DdsFileFormat::B5G5R5A1:
             return DXGI_FORMAT_B5G5R5A1_UNORM;
-        case DDS_FORMAT_B4G4R4A4:
+        case DdsFileFormat::B4G4R4A4:
             return DXGI_FORMAT_B4G4R4A4_UNORM;
-        case DDS_FORMAT_B5G6R5:
+        case DdsFileFormat::B5G6R5:
             return DXGI_FORMAT_B5G6R5_UNORM;
-        case DDS_FORMAT_R8G8B8A8:
-        default:
+        case DdsFileFormat::R8G8B8A8_SRGB:
+            return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        case DdsFileFormat::R8_UNORM:
+            return DXGI_FORMAT_R8_UNORM;
+        case DdsFileFormat::R8G8_UNORM:
+            return DXGI_FORMAT_R8G8_UNORM;
+        case DdsFileFormat::R8G8_SNORM:
+            return DXGI_FORMAT_R8G8_SNORM;
+        case DdsFileFormat::R8G8B8A8:
             return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case DdsFileFormat::R32_FLOAT:
+            return DXGI_FORMAT_R32_FLOAT;
+        default:
+            return DXGI_FORMAT_UNKNOWN;
         }
     }
 
@@ -96,7 +113,23 @@ namespace
         metadata.depth = 1;
         metadata.arraySize = info->arraySize;
         metadata.mipLevels = info->mipLevels;
-        metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+        switch (info->format)
+        {
+        case DdsFileFormat::B8G8R8A8_SRGB:
+        case DdsFileFormat::B8G8R8X8_SRGB:
+        case DdsFileFormat::BC1_SRGB:
+        case DdsFileFormat::BC2_SRGB:
+        case DdsFileFormat::BC3_SRGB:
+        case DdsFileFormat::BC7_SRGB:
+        case DdsFileFormat::R8G8B8A8_SRGB:
+            metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            break;
+        default:
+            metadata.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            break;
+        }
+
         metadata.dimension = TEX_DIMENSION_TEXTURE2D;
         if (info->cubeMap)
         {
@@ -165,6 +198,10 @@ namespace
         size_t x;
         size_t y;
     };
+
+    // This value sets the HRESULT customer bit to ensure that it cannot overlap with any Microsoft-defined
+    // HRESULT values.
+    constexpr HRESULT UnknownDdsSaveFormat = 0xA0000000 | (FACILITY_WIN32 << 16) | ERROR_INVALID_PIXEL_FORMAT;
 }
 
 HRESULT __stdcall Load(const ImageIOCallbacks* callbacks, DDSLoadInfo* loadInfo)
@@ -182,7 +219,7 @@ HRESULT __stdcall Load(const ImageIOCallbacks* callbacks, DDSLoadInfo* loadInfo)
         return E_OUTOFMEMORY;
     }
 
-    HRESULT hr = LoadFromDDSIOCallbacks(callbacks, DDS_FLAGS_NONE, &info, *ddsImage);
+    HRESULT hr = LoadFromDDSIOCallbacks(callbacks, DDS_FLAGS_ALLOW_LARGE_FILES, &info, *ddsImage);
 
     if (FAILED(hr))
     {
@@ -221,7 +258,7 @@ HRESULT __stdcall Load(const ImageIOCallbacks* callbacks, DDSLoadInfo* loadInfo)
         ddsImage.swap(interleavedImage);
     }
 
-    const DXGI_FORMAT targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    const DXGI_FORMAT targetFormat = IsSRGB(info.format) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     std::unique_ptr<ScratchImage> targetImage(new(std::nothrow) ScratchImage);
 
     if (targetImage == nullptr)
@@ -308,7 +345,7 @@ HRESULT __stdcall Load(const ImageIOCallbacks* callbacks, DDSLoadInfo* loadInfo)
         {
             return E_OUTOFMEMORY;
         }
-        hr = flattenedCubeMap->Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, width * 4, height * 3, 1, 1, DDS_FLAGS_NONE);
+        hr = flattenedCubeMap->Initialize2D(targetFormat, width * 4, height * 3, 1, 1, CP_FLAGS_NONE);
         if (FAILED(hr))
         {
             return hr;
@@ -374,6 +411,7 @@ HRESULT __stdcall Save(
     const DDSBitmapData* imageData,
     const uint32_t imageDataLength,
     const ImageIOCallbacks* callbacks,
+    IDXGIAdapter* directComputeAdapter,
     ProgressProc progressFn)
 {
     if (input == nullptr || imageData == nullptr || callbacks == nullptr)
@@ -397,6 +435,11 @@ HRESULT __stdcall Save(
 
     const DXGI_FORMAT dxgiFormat = GetDXGIFormat(input->format);
 
+    if (dxgiFormat == DXGI_FORMAT_UNKNOWN)
+    {
+        return UnknownDdsSaveFormat;
+    }
+
     if (IsCompressed(dxgiFormat))
     {
         std::unique_ptr<ScratchImage> compressedImage(new(std::nothrow) ScratchImage);
@@ -406,9 +449,9 @@ HRESULT __stdcall Save(
             return E_OUTOFMEMORY;
         }
 
-        DWORD compressFlags = TEX_COMPRESS_DEFAULT | TEX_COMPRESS_PARALLEL;
+        TEX_COMPRESS_FLAGS compressFlags = TEX_COMPRESS_DEFAULT | TEX_COMPRESS_PARALLEL;
 
-        if (input->errorMetric == DDS_ERROR_METRIC_UNIFORM)
+        if (input->errorMetric == DdsErrorMetric::Uniform)
         {
             compressFlags |= TEX_COMPRESS_UNIFORM;
         }
@@ -419,20 +462,20 @@ HRESULT __stdcall Save(
         if (dxgiFormat == DXGI_FORMAT_BC7_UNORM || dxgiFormat == DXGI_FORMAT_BC7_UNORM_SRGB || dxgiFormat == DXGI_FORMAT_BC7_TYPELESS ||
             dxgiFormat == DXGI_FORMAT_BC6H_UF16 || dxgiFormat == DXGI_FORMAT_BC6H_SF16 || dxgiFormat == DXGI_FORMAT_BC6H_TYPELESS)
         {
-            switch (input->compressionMode)
+            switch (input->compressionSpeed)
             {
-            case BC7_COMPRESSION_MODE_FAST:
+            case BC7CompressionSpeed::Fast:
                 compressFlags |= TEX_COMPRESS_BC7_QUICK;
                 break;
-            case BC7_COMPRESSION_MODE_SLOW:
+            case BC7CompressionSpeed::Slow:
                 compressFlags |= TEX_COMPRESS_BC7_USE_3SUBSETS;
                 break;
-            case BC7_COMPRESSION_MODE_NORMAL:
+            case BC7CompressionSpeed::Medium:
             default:
                 break;
             }
 
-            dcHelper.reset(new(std::nothrow) DirectComputeHelper);
+            dcHelper.reset(new(std::nothrow) DirectComputeHelper(directComputeAdapter));
             if (dcHelper != nullptr)
             {
                 useDirectCompute = dcHelper->ComputeDeviceAvailable();
@@ -468,7 +511,9 @@ HRESULT __stdcall Save(
             return E_OUTOFMEMORY;
         }
 
-        hr = Convert(image->GetImages(), image->GetImageCount(), image->GetMetadata(), dxgiFormat, TEX_FILTER_DEFAULT,
+        TEX_FILTER_FLAGS filter = TEX_FILTER_DEFAULT | TEX_FILTER_SEPARATE_ALPHA;
+
+        hr = Convert(image->GetImages(), image->GetImageCount(), image->GetMetadata(), dxgiFormat, filter,
             TEX_THRESHOLD_DEFAULT, *convertedImage, progressFn);
 
         if (FAILED(hr))
@@ -489,7 +534,7 @@ HRESULT __stdcall Save(
         }
         else if (metadata.GetAlphaMode() == TEX_ALPHA_MODE_UNKNOWN)
         {
-            metadata.SetAlphaMode(TEX_ALPHA_MODE_STRAIGHT);
+            metadata.SetAlphaMode(TEX_ALPHA_MODE_CUSTOM);
         }
     }
 

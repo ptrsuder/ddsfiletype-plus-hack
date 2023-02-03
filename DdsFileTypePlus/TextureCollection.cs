@@ -3,14 +3,14 @@
 // This file is part of pdn-ddsfiletype-plus, a DDS FileType plugin
 // for Paint.NET that adds support for the DX10 and later formats.
 //
-// Copyright (c) 2017-2019 Nicholas Hayes
+// Copyright (c) 2017-2023 Nicholas Hayes
 //
 // This file is licensed under the MIT License.
 // See LICENSE.txt for complete licensing and attribution information.
 //
 ////////////////////////////////////////////////////////////////////////
 
-using System;
+using PaintDotNet;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,10 +19,9 @@ namespace DdsFileTypePlus
 {
     [DebuggerDisplay("Count = {Count}")]
     [DebuggerTypeProxy(typeof(TextureCollectionDebugView))]
-    internal sealed class TextureCollection : IList<Texture>, IReadOnlyList<Texture>, IDisposable
+    internal sealed class TextureCollection : System.IDisposable, IList<Texture>, IReadOnlyList<Texture>
     {
         private readonly List<Texture> items;
-        private bool disposed;
 
         public TextureCollection(int capacity)
         {
@@ -78,19 +77,6 @@ namespace DdsFileTypePlus
             this.items.CopyTo(array, arrayIndex);
         }
 
-        public void Dispose()
-        {
-            if (!this.disposed)
-            {
-                this.disposed = true;
-
-                for (int i = 0; i < this.items.Count; i++)
-                {
-                    this.items[i]?.Dispose();
-                }
-            }
-        }
-
         public IEnumerator<Texture> GetEnumerator()
         {
             return this.items.GetEnumerator();
@@ -131,6 +117,16 @@ namespace DdsFileTypePlus
             DisposePreviousItem(index);
 
             this.items.RemoveAt(index);
+        }
+
+        public void Dispose()
+        {
+           
+                for (int i = 0; i < this.items.Count; i++)
+                {
+                    this.items[i]?.Dispose();
+                }
+                  
         }
 
         private void DisposePreviousItem(int index)
