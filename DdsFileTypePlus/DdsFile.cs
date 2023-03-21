@@ -123,6 +123,9 @@ namespace DdsFileTypePlus
                     ++dst;
                 }
             }
+            
+            image.Dispose();
+            
             return surface;
         }
         
